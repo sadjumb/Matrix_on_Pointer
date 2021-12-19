@@ -10,22 +10,33 @@ public:
 	TMatrix(size_t _size)
 	{
 		size = _size;
-		vec = new TVector<T>[size];
+		vec = new T* [size];
 		for (size_t i = 0; i < size; ++i)
 		{
-			vec[i] = TVector<T>(size - i);
+			vec[i] = new T[size - i]{ T() };
 		}
 	}
 	TMatrix(const TMatrix<T>& copy) : size(copy.size)
 	{
-		vec = new TVector<T>[size];
+		vec = new T*[size];
 		for (size_t i = 0; i < size; ++i)
 		{
-			vec[i] = copy.vec[i];
+			vec[i] = new T[size - i]{ T() };
+		}
+		for (size_t i = 0; i < size; ++i)
+		{
+			for (size_t j = 0; j < size - i; ++j)
+			{
+				vec[i][j] = copy.vec[i][j];
+			}
 		}
 	}
 	~TMatrix()
 	{
+		for (size_t i = 0; i < size; ++i)
+		{
+			delete[] vec[i];
+		}
 		delete[] vec;
 	}
 	TMatrix<T>& operator=(const TMatrix<T>& copy)
@@ -35,10 +46,16 @@ public:
 		size = copy.size;
 		if (vec != nullptr)
 		{
+			for (size_t i = 0; i < size; ++i)
+				delete[] vec[i];
 			delete[] vec;
 		}
 
-		vec = new TVector<TVector<T>>[size];
+		vec = new T * [size];
+		for (size_t i = 0; i < size; ++i)
+		{
+			vec[i] = new T[size - i]{ T() };
+		}
 
 		for (size_t i = 0; i < size; ++i)
 		{
@@ -57,9 +74,9 @@ public:
 			throw "no equal size";
 		TMatrix tmp(*this);
 		for (size_t i = 0; i < size; ++i)
-		{
-			tmp.vec[i] = vec[i] + v.vec[i];
-		}
+			for (size_t j = 0; j < size - i; ++j)
+				tmp.vec[i][j] += v.vec[i][j];
+		
 		return tmp;
 	}
 	TMatrix operator-(const TMatrix& v)
@@ -68,9 +85,8 @@ public:
 			throw "no equal size";
 		TMatrix tmp(*this);
 		for (size_t i = 0; i < size; ++i)
-		{
-			tmp.vec[i] = vec[i] - v.vec[i];
-		}
+			for (size_t j = 0; j < size - i; ++j)
+				tmp.vec[i][j] -= v.vec[i][j];
 		return tmp;
 	}
 
@@ -80,13 +96,13 @@ public:
 			throw "no equal size";
 		TMatrix tmp(size);
 		for (size_t i = 0; i < size; ++i)
-			for (size_t j = 0; j < vec[i].get_size(); ++j)
-				for (size_t k = 0; k < size - j && k < vec[i].get_size(); ++k)
+			for (size_t j = 0; j < size - i; ++j)
+				for (size_t k = 0; k < size - j && k < size - i; ++k)
 					tmp.vec[i][j] += vec[i][k] * v.vec[k][j];
 		return tmp;
 	}
 
-	TVector<T>& operator[](int index)
+	T*& operator[](int index)
 	{
 		if (index < 0 || index > size - 1)
 			throw std::out_of_range("start is negative");
@@ -119,14 +135,18 @@ public:
 
 private:
 	size_t size;
-	TVector<T>* vec;
+	T** vec;
 
 
 	friend std::ostream& operator<<(std::ostream& out, const TMatrix<T>& r)
 	{
 		for (size_t i = 0; i < r.size; ++i)
 		{
-			out << r.vec[i] << std::endl;
+			for (size_t j = 0; j < r.size - i; ++j)
+			{
+				out << r.vec[i][j] << " ";
+			}
+			out << std::endl;
 		}
 		return out;
 	}
@@ -134,7 +154,10 @@ private:
 	{
 		for (size_t i = 0; i < r.size; ++i)
 		{
-			in >> r.vec[i];
+			for (size_t j = 0; j < r.size - i; ++j)
+			{
+				in >> r.vec[i][j];
+			}
 		}
 		return in;
 	}

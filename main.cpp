@@ -13,7 +13,7 @@ int main()
 	{
 		v[i] = (i + 2) * 3;
 	}
-	t1[0] = t1[0] + v;
+	//t1[0] = t1[0] + v;
 	std::cout << t1 << t2;
 	std::cout << t1 * t2;
 	//std::vector<int>* vec = new std::vector<int>[5];
